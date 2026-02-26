@@ -14,9 +14,19 @@ describe('AppController', () => {
     appController = app.get<AppController>(AppController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+  describe('health', () => {
+    it('should return ok status', () => {
+      const result = appController.getHealth();
+      expect(result.status).toBe('ok');
+      expect(typeof result.timestamp).toBe('string');
+    });
+  });
+
+  describe('version', () => {
+    it('should return api identity', () => {
+      const result = appController.getVersion();
+      expect(result.name).toBe('api');
+      expect(typeof result.version).toBe('string');
     });
   });
 });

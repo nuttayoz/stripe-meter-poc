@@ -18,7 +18,12 @@
     "lint:web": "bun run --filter './application/web' lint",
     "lint:api": "bun run --filter './backend/api' lint",
     "lint": "bun run --workspaces lint",
+    "lint:fix": "bun run --workspaces lint:fix",
+    "typecheck:web": "bun run --filter './application/web' typecheck",
+    "typecheck:api": "bun run --filter './backend/api' typecheck",
+    "typecheck": "bun run --workspaces typecheck",
     "test:api": "bun run --filter './backend/api' test",
-    "test": "bun run test:api"
+    "test": "bun run test:api",
+    "check": "bun run lint && bun run typecheck && bun run test && bun run build"
   }
 }
