@@ -51,3 +51,13 @@
 - No Stripe secret key in browser bundles.
 - No webhook processing without signature verification and raw body handling.
 - No direct subscription state trust from redirect pages without webhook confirmation.
+
+## 7) Learning-First Collaboration Rule
+
+- Primary responsibility is not only to make the app work, but to make the student understand each change.
+- Work must be delivered in small steps with clear reasoning for each step.
+- Before major commands/edits, explain:
+  - what will be done,
+  - why it is done,
+  - what result to expect.
+- After each step, summarize what changed and how to verify it.

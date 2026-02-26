@@ -6,13 +6,19 @@
     "backend/*"
   ],
   "scripts": {
-    "dev:web": "bun --cwd application/web run dev",
-    "dev:api": "bun --cwd backend/api run start:dev",
-    "dev": "echo \"Run 'bun run dev:web' and 'bun run dev:api' in separate terminals.\"",
+    "dev:web": "bun run --filter './application/web' dev",
+    "dev:api": "bun run --filter './backend/api' dev",
+    "dev": "bun run --workspaces --parallel dev",
+    "build:web": "bun run --filter './application/web' build",
+    "build:api": "bun run --filter './backend/api' build",
+    "build": "bun run --workspaces build",
     "infra:up": "docker compose -f devtool/docker-compose.yml up -d",
     "infra:down": "docker compose -f devtool/docker-compose.yml down",
     "infra:logs": "docker compose -f devtool/docker-compose.yml logs -f",
-    "lint": "echo \"Lint will be wired after app scaffolding.\"",
-    "test": "echo \"Tests will be wired after app scaffolding.\""
+    "lint:web": "bun run --filter './application/web' lint",
+    "lint:api": "bun run --filter './backend/api' lint",
+    "lint": "bun run --workspaces lint",
+    "test:api": "bun run --filter './backend/api' test",
+    "test": "bun run test:api"
   }
 }
