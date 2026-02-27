@@ -43,7 +43,7 @@ Last updated: 2026-02-26
 - [x] Add password hashing + refresh token persistence model
 - [x] Build login page in Next.js
 - [x] Add route guards (`/login` -> `/plans` -> `/burn`)
-- [ ] Add Stripe SDK module and secure env validation
+- [x] Add Stripe SDK module and secure env validation
 - [ ] Implement Stripe catalog sync (`products`, `prices`)
 - [ ] Implement checkout session endpoint (Stripe-hosted)
 - [ ] Implement webhook endpoint with signature verification
@@ -52,7 +52,7 @@ Last updated: 2026-02-26
 
 ## Current Focus
 
-- [ ] Stripe SDK module and secure env validation (In Progress)
+- [ ] Implement Stripe catalog sync (`products`, `prices`) (In Progress)
 
 ## Notes
 
