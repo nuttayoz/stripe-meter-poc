@@ -3,9 +3,57 @@ type StripeAccount = {
   livemode: boolean;
 };
 
+type StripeMetadata = Record<string, string>;
+
+type StripeListResponse<T> = {
+  data: T[];
+  has_more: boolean;
+};
+
+type StripeListParams = {
+  active?: boolean;
+  limit?: number;
+  starting_after?: string;
+};
+
+export type StripeProduct = {
+  id: string;
+  name: string;
+  description: string | null;
+  active: boolean;
+  metadata: StripeMetadata;
+};
+
+type StripeRecurring = {
+  interval: string;
+  interval_count: number;
+  usage_type?: string | null;
+  meter?: string | null;
+};
+
+type StripePriceProduct = string | { id: string };
+
+export type StripePrice = {
+  id: string;
+  product: StripePriceProduct;
+  active: boolean;
+  type: string;
+  currency: string;
+  unit_amount: number | null;
+  recurring: StripeRecurring | null;
+  tax_behavior: string | null;
+  metadata: StripeMetadata;
+};
+
 export type StripeClient = {
   accounts: {
     retrieve(): Promise<StripeAccount>;
+  };
+  products: {
+    list(params: StripeListParams): Promise<StripeListResponse<StripeProduct>>;
+  };
+  prices: {
+    list(params: StripeListParams): Promise<StripeListResponse<StripePrice>>;
   };
 };
 
