@@ -1,4 +1,5 @@
 import { HealthCheck } from "@/components/health-check";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -13,6 +14,14 @@ export default function Home() {
             Next.js uses React Query to call NestJS directly. This is the base pattern for upcoming auth and billing flows.
           </p>
         </header>
+        <div className="flex gap-3">
+          <Link
+            className="inline-flex items-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-700"
+            href="/login"
+          >
+            Go To Login
+          </Link>
+        </div>
         <HealthCheck />
       </main>
     </div>

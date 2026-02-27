@@ -39,12 +39,12 @@ Last updated: 2026-02-26
 
 ## Phase D: Next Implementation Targets
 
-- [ ] Build Auth module in NestJS (login, refresh, logout)
-- [ ] Add password hashing + refresh token persistence model
-- [ ] Build login page in Next.js
-- [ ] Add route guards (`/login` -> `/plans` -> `/burn`)
-- [ ] Add Stripe SDK module and secure env validation
-- [ ] Implement Stripe catalog sync (`products`, `prices`)
+- [x] Build Auth module in NestJS (login, refresh, logout)
+- [x] Add password hashing + refresh token persistence model
+- [x] Build login page in Next.js
+- [x] Add route guards (`/login` -> `/plans` -> `/burn`)
+- [x] Add Stripe SDK module and secure env validation
+- [x] Implement Stripe catalog sync (`products`, `prices`)
 - [ ] Implement checkout session endpoint (Stripe-hosted)
 - [ ] Implement webhook endpoint with signature verification
 - [ ] Implement usage burn endpoint with idempotency
@@ -52,7 +52,7 @@ Last updated: 2026-02-26
 
 ## Current Focus
 
-- [ ] Auth module + login flow (In Progress)
+- [ ] Implement checkout session endpoint (Stripe-hosted) (In Progress)
 
 ## Notes
 

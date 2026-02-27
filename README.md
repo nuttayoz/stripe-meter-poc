@@ -31,6 +31,15 @@
 - `bun run typecheck` runs TypeScript checks across workspaces.
 - `bun run test` runs API tests.
 - `bun run check` runs lint + typecheck + test + build.
+- Local Postgres host port is `5433` (container port remains `5432`).
+
+## Local Auth Setup
+
+- `bun run --cwd backend/api prisma:generate`
+- `bun run --cwd backend/api prisma:migrate:dev --name init_auth`
+- `bun run --cwd backend/api seed`
+- Demo login page: `http://localhost:3000/login`
+- Demo seeded user (default): `demo@example.com` / `Passw0rd!23`
 
 ## Notes
 
