@@ -12,6 +12,12 @@ enum UserRole {
   MEMBER
 }
 
+enum BillingStrategy {
+  BASE_PLUS_OVERAGE
+  MAX_MEMBER_USAGE
+  UNKNOWN
+}
+
 model Organization {
   id               String   @id @default(cuid())
   name             String
@@ -21,6 +27,43 @@ model Organization {
   updatedAt        DateTime @updatedAt @map("updated_at")
 
   @@map("organizations")
+}
+
+model BillingProduct {
+  id              String         @id @default(cuid())
+  stripeProductId String         @unique @map("stripe_product_id")
+  name            String
+  description     String?
+  active          Boolean        @default(true)
+  metadata        Json?
+  prices          BillingPrice[]
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  @@map("billing_products")
+}
+
+model BillingPrice {
+  id                     String          @id @default(cuid())
+  stripePriceId          String          @unique @map("stripe_price_id")
+  stripeProductId        String          @map("stripe_product_id")
+  product                BillingProduct  @relation(fields: [stripeProductId], references: [stripeProductId], onDelete: Restrict)
+  type                   String
+  currency               String
+  unitAmount             Int?            @map("unit_amount")
+  recurringInterval      String?         @map("recurring_interval")
+  recurringIntervalCount Int?            @map("recurring_interval_count")
+  usageType              String?         @map("usage_type")
+  meterId                String?         @map("meter_id")
+  taxBehavior            String?         @map("tax_behavior")
+  billingStrategy        BillingStrategy @default(UNKNOWN) @map("billing_strategy")
+  active                 Boolean         @default(true)
+  metadata               Json?
+  createdAt              DateTime        @default(now()) @map("created_at")
+  updatedAt              DateTime        @updatedAt @map("updated_at")
+
+  @@index([stripeProductId])
+  @@map("billing_prices")
 }
 
 model User {
