@@ -63,7 +63,6 @@ async function resolveSession(): Promise<SessionState | null> {
 }
 
 export function useSession() {
-  console.log("session query...");
   return useQuery({
     queryKey: SESSION_QUERY_KEY,
     queryFn: resolveSession,

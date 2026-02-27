@@ -49,6 +49,37 @@ type RequestOptions = {
   headers?: Record<string, string>;
 };
 
+export type BillingPlan = {
+  priceId: string;
+  productId: string;
+  productName: string;
+  productDescription: string | null;
+  active: boolean;
+  type: string;
+  currency: string;
+  unitAmount: number | null;
+  recurringInterval: string | null;
+  recurringIntervalCount: number | null;
+  usageType: string | null;
+  meterId: string | null;
+  taxBehavior: string | null;
+  billingStrategy: string;
+  metadata: Record<string, string> | null;
+};
+
+type BillingPlansResponse = {
+  plans: BillingPlan[];
+};
+
+type CheckoutSessionRequest = {
+  priceId: string;
+};
+
+type CheckoutSessionResponse = {
+  checkoutUrl: string;
+  checkoutSessionId: string;
+};
+
 async function httpRequest<T>(
   path: string,
   options: RequestOptions = {},
@@ -117,5 +148,29 @@ export function logout() {
   return httpRequest<{ success: boolean }>("/api/auth/logout", {
     method: "POST",
     credentials: "include",
+  });
+}
+
+export function getBillingPlans(accessToken: string) {
+  return httpRequest<BillingPlansResponse>("/api/billing/plans", {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+    },
+  });
+}
+
+export function createCheckoutSession(
+  accessToken: string,
+  payload: CheckoutSessionRequest,
+) {
+  return httpRequest<CheckoutSessionResponse>("/api/billing/checkout-session", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+    },
+    body: payload,
   });
 }
