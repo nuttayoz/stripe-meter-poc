@@ -44,7 +44,7 @@ Last updated: 2026-02-26
 - [x] Build login page in Next.js
 - [x] Add route guards (`/login` -> `/plans` -> `/burn`)
 - [x] Add Stripe SDK module and secure env validation
-- [ ] Implement Stripe catalog sync (`products`, `prices`)
+- [x] Implement Stripe catalog sync (`products`, `prices`)
 - [ ] Implement checkout session endpoint (Stripe-hosted)
 - [ ] Implement webhook endpoint with signature verification
 - [ ] Implement usage burn endpoint with idempotency
@@ -52,7 +52,7 @@ Last updated: 2026-02-26
 
 ## Current Focus
 
-- [ ] Implement Stripe catalog sync (`products`, `prices`) (In Progress)
+- [ ] Implement checkout session endpoint (Stripe-hosted) (In Progress)
 
 ## Notes
 
