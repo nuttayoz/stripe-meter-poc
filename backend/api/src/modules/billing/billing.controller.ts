@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   ForbiddenException,
   Get,
@@ -8,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { BillingService } from './billing.service';
+import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto';
 import {
   AccessTokenGuard,
   type AuthenticatedRequest,
@@ -31,5 +33,17 @@ export class BillingController {
   @Get('plans')
   async getPlans() {
     return this.billingService.getPlans();
+  }
+
+  @Post('checkout-session')
+  async createCheckoutSession(
+    @Req() request: AuthenticatedRequest,
+    @Body() dto: CreateCheckoutSessionDto,
+  ) {
+    return this.billingService.createCheckoutSession({
+      orgId: request.authUser.orgId,
+      userId: request.authUser.sub,
+      priceId: dto.priceId,
+    });
   }
 }

@@ -1,8 +1,17 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import type {
   StripeClient,
   StripePrice,
+  StripeSubscription,
 } from '../../infrastructure/stripe/stripe.client';
 import { STRIPE_CLIENT } from '../../infrastructure/stripe/stripe.constants';
 import { inferBillingStrategy } from './billing-strategy';
@@ -16,6 +25,7 @@ type StripeCollection<T extends { id: string }> = {
 export class BillingService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
     @Inject(STRIPE_CLIENT) private readonly stripeClient: StripeClient,
   ) {}
 
@@ -193,6 +203,93 @@ export class BillingService {
     };
   }
 
+  async createCheckoutSession(params: {
+    orgId: string;
+    userId: string;
+    priceId: string;
+  }) {
+    const { orgId, userId, priceId } = params;
+    const price = await this.prisma.billingPrice.findUnique({
+      where: {
+        stripePriceId: priceId,
+      },
+      include: {
+        product: true,
+      },
+    });
+
+    if (!price || !price.active || !price.product.active) {
+      throw new NotFoundException('Selected plan is not available');
+    }
+
+    if (price.type !== 'recurring') {
+      throw new BadRequestException(
+        'Only recurring prices are supported for checkout',
+      );
+    }
+
+    const organization = await this.prisma.organization.findUnique({
+      where: {
+        id: orgId,
+      },
+    });
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    const stripeCustomerId = await this.ensureStripeCustomer(organization);
+    const existingSubscriptions =
+      await this.listAllSubscriptions(stripeCustomerId);
+
+    const hasActiveSubscription = existingSubscriptions.some((subscription) =>
+      this.isSubscriptionBlocking(subscription.status),
+    );
+
+    if (hasActiveSubscription) {
+      throw new ConflictException(
+        'Organization already has an active subscription',
+      );
+    }
+
+    const appBaseUrl = this.configService.getOrThrow<string>('APP_BASE_URL');
+    const successUrl = `${appBaseUrl}/plans?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${appBaseUrl}/plans?checkout=canceled`;
+
+    const checkoutSession = await this.stripeClient.checkout.sessions.create({
+      mode: 'subscription',
+      customer: stripeCustomerId,
+      line_items: [
+        {
+          price: price.stripePriceId,
+        },
+      ],
+      subscription_data: {
+        default_tax_rates: ['txr_1T2Re6F6bJOUXc3rHQMVWaqO'],
+      },
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      client_reference_id: organization.id,
+      metadata: {
+        organization_id: organization.id,
+        user_id: userId,
+        stripe_price_id: price.stripePriceId,
+        billing_strategy: price.billingStrategy,
+      },
+    });
+
+    if (!checkoutSession.url) {
+      throw new InternalServerErrorException(
+        'Stripe checkout URL is missing in session response',
+      );
+    }
+
+    return {
+      checkoutUrl: checkoutSession.url,
+      checkoutSessionId: checkoutSession.id,
+    };
+  }
+
   private async listAllProducts() {
     return this.listAll((startingAfter) =>
       this.stripeClient.products.list({
@@ -234,6 +331,17 @@ export class BillingService {
     return allItems;
   }
 
+  private async listAllSubscriptions(customerId: string) {
+    return this.listAll((startingAfter) =>
+      this.stripeClient.subscriptions.list({
+        customer: customerId,
+        status: 'all',
+        limit: 100,
+        ...(startingAfter ? { starting_after: startingAfter } : {}),
+      }),
+    );
+  }
+
   private resolveProductId(price: StripePrice) {
     if (typeof price.product === 'string') {
       return price.product;
@@ -244,5 +352,37 @@ export class BillingService {
     }
 
     return null;
+  }
+
+  private async ensureStripeCustomer(organization: {
+    id: string;
+    name: string;
+    stripeCustomerId: string | null;
+  }) {
+    if (organization.stripeCustomerId) {
+      return organization.stripeCustomerId;
+    }
+
+    const customer = await this.stripeClient.customers.create({
+      name: organization.name,
+      metadata: {
+        organization_id: organization.id,
+      },
+    });
+
+    await this.prisma.organization.update({
+      where: {
+        id: organization.id,
+      },
+      data: {
+        stripeCustomerId: customer.id,
+      },
+    });
+
+    return customer.id;
+  }
+
+  private isSubscriptionBlocking(status: StripeSubscription['status']) {
+    return status !== 'canceled' && status !== 'incomplete_expired';
   }
 }

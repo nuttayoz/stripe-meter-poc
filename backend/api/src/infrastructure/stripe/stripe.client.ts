@@ -16,6 +16,29 @@ type StripeListParams = {
   starting_after?: string;
 };
 
+type StripeSubscriptionListParams = {
+  customer: string;
+  status: 'all';
+  limit?: number;
+  starting_after?: string;
+};
+
+type StripeCheckoutSessionCreateParams = {
+  mode: 'subscription';
+  customer: string;
+  line_items: Array<{
+    price: string;
+    quantity?: number;
+  }>;
+  success_url: string;
+  cancel_url: string;
+  subscription_data: {
+    default_tax_rates: Array<string>;
+  };
+  client_reference_id?: string;
+  metadata?: StripeMetadata;
+};
+
 export type StripeProduct = {
   id: string;
   name: string;
@@ -45,6 +68,20 @@ export type StripePrice = {
   metadata: StripeMetadata;
 };
 
+export type StripeCustomer = {
+  id: string;
+};
+
+export type StripeSubscription = {
+  id: string;
+  status: string;
+};
+
+type StripeCheckoutSession = {
+  id: string;
+  url: string | null;
+};
+
 export type StripeClient = {
   accounts: {
     retrieve(): Promise<StripeAccount>;
@@ -54,6 +91,25 @@ export type StripeClient = {
   };
   prices: {
     list(params: StripeListParams): Promise<StripeListResponse<StripePrice>>;
+  };
+  customers: {
+    create(params: {
+      name?: string;
+      email?: string;
+      metadata?: StripeMetadata;
+    }): Promise<StripeCustomer>;
+  };
+  subscriptions: {
+    list(
+      params: StripeSubscriptionListParams,
+    ): Promise<StripeListResponse<StripeSubscription>>;
+  };
+  checkout: {
+    sessions: {
+      create(
+        params: StripeCheckoutSessionCreateParams,
+      ): Promise<StripeCheckoutSession>;
+    };
   };
 };
 
