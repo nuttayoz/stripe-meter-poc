@@ -42,7 +42,7 @@ Last updated: 2026-02-26
 - [x] Build Auth module in NestJS (login, refresh, logout)
 - [x] Add password hashing + refresh token persistence model
 - [x] Build login page in Next.js
-- [ ] Add route guards (`/login` -> `/plans` -> `/burn`)
+- [x] Add route guards (`/login` -> `/plans` -> `/burn`)
 - [ ] Add Stripe SDK module and secure env validation
 - [ ] Implement Stripe catalog sync (`products`, `prices`)
 - [ ] Implement checkout session endpoint (Stripe-hosted)
@@ -52,7 +52,7 @@ Last updated: 2026-02-26
 
 ## Current Focus
 
-- [ ] Route guards (`/login` -> `/plans` -> `/burn`) (In Progress)
+- [ ] Stripe SDK module and secure env validation (In Progress)
 
 ## Notes
 
