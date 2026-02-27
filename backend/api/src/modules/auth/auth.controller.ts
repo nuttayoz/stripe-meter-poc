@@ -1,8 +1,20 @@
-import { Body, Controller, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
+import {
+  AccessTokenGuard,
+  type AuthenticatedRequest,
+} from './guards/access-token.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -67,6 +79,12 @@ export class AuthController {
     );
 
     return { success: true };
+  }
+
+  @Get('me')
+  @UseGuards(AccessTokenGuard)
+  async me(@Req() request: AuthenticatedRequest) {
+    return await this.authService.getMe(request.authUser.sub);
   }
 
   private getRefreshTokenFromCookie(request: Request) {

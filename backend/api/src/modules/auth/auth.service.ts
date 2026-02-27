@@ -124,6 +124,37 @@ export class AuthService {
     return { success: true };
   }
 
+  async getMe(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User no longer exists');
+    }
+
+    return {
+      user: this.toAuthUser(user),
+    };
+  }
+
+  async verifyAccessToken(rawAccessToken?: string) {
+    const accessToken = rawAccessToken?.trim();
+    if (!accessToken) {
+      throw new UnauthorizedException('Access token is required');
+    }
+
+    try {
+      return await this.jwtService.verifyAsync<AuthJwtPayload>(accessToken, {
+        secret:
+          this.configService.get<string>('JWT_ACCESS_SECRET') ??
+          'dev_access_secret',
+      });
+    } catch {
+      throw new UnauthorizedException('Access token is invalid');
+    }
+  }
+
   getRefreshCookieName() {
     return (
       this.configService.get<string>('JWT_REFRESH_COOKIE_NAME') ??
