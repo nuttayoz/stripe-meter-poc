@@ -82,6 +82,15 @@ type StripeCheckoutSession = {
   url: string | null;
 };
 
+export type StripeWebhookEvent = {
+  id: string;
+  type: string;
+  created: number;
+  data: {
+    object: Record<string, unknown>;
+  };
+};
+
 export type StripeClient = {
   accounts: {
     retrieve(): Promise<StripeAccount>;
@@ -110,6 +119,13 @@ export type StripeClient = {
         params: StripeCheckoutSessionCreateParams,
       ): Promise<StripeCheckoutSession>;
     };
+  };
+  webhooks: {
+    constructEventAsync(
+      payload: string | Buffer,
+      signature: string,
+      secret: string,
+    ): Promise<StripeWebhookEvent>;
   };
 };
 

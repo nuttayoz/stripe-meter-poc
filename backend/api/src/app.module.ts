@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { StripeModule } from './modules/stripe/stripe.module';
 import { StripeClientModule } from './infrastructure/stripe/stripe-client.module';
+import { WebhookModule } from './modules/webhook/webhook.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { StripeClientModule } from './infrastructure/stripe/stripe-client.module
     StripeClientModule,
     StripeModule,
     BillingModule,
+    WebhookModule,
   ],
   controllers: [AppController],
   providers: [AppService],
