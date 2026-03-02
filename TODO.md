@@ -1,6 +1,6 @@
 # TODO / Progress Tracker
 
-Last updated: 2026-02-26
+Last updated: 2026-02-27
 
 ## How To Use
 
@@ -46,13 +46,13 @@ Last updated: 2026-02-26
 - [x] Add Stripe SDK module and secure env validation
 - [x] Implement Stripe catalog sync (`products`, `prices`)
 - [x] Implement checkout session endpoint (Stripe-hosted)
-- [ ] Implement webhook endpoint with signature verification
+- [x] Implement webhook endpoint with signature verification
 - [ ] Implement usage burn endpoint with idempotency
 - [ ] Add transaction history API + UI
 
 ## Current Focus
 
-- [ ] Implement webhook endpoint with signature verification (In Progress)
+- [ ] Implement usage burn endpoint with idempotency (In Progress)
 
 ## Notes
 
@@ -60,3 +60,4 @@ Last updated: 2026-02-26
 - No Next.js API routes in v1 baseline.
 - `PLAN_A` uses Stripe-native aggregation.
 - `PLAN_B` requires app-side peak aggregation before sending meter snapshots.
+- Webhook v1 handles 12 required Stripe events only (optional events deferred).
