@@ -23,6 +23,8 @@ model Organization {
   name             String
   stripeCustomerId String?  @unique @map("stripe_customer_id")
   users            User[]
+  subscriptions    Subscription[]
+  transactions     Transaction[]
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
@@ -92,4 +94,60 @@ model RefreshToken {
 
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+model Subscription {
+  id                   String       @id @default(cuid())
+  organizationId       String       @map("organization_id")
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  stripeSubscriptionId String       @unique @map("stripe_subscription_id")
+  stripePriceId        String?      @map("stripe_price_id")
+  status               String
+  currentPeriodStart   DateTime?    @map("current_period_start")
+  currentPeriodEnd     DateTime?    @map("current_period_end")
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@map("subscriptions")
+}
+
+model Transaction {
+  id                   String        @id @default(cuid())
+  organizationId       String?       @map("organization_id")
+  organization         Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  stripeEventId        String?       @unique @map("stripe_event_id")
+  eventType            String        @map("event_type")
+  type                 String
+  status               String
+  amount               Int?
+  currency             String?
+  stripeInvoiceId      String?       @map("stripe_invoice_id")
+  stripePaymentIntentId String?      @map("stripe_payment_intent_id")
+  stripeChargeId       String?       @map("stripe_charge_id")
+  stripeSubscriptionId String?       @map("stripe_subscription_id")
+  rawPayload           Json?         @map("raw_payload")
+  occurredAt           DateTime      @map("occurred_at")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@index([eventType])
+  @@map("transactions")
+}
+
+model StripeWebhookEvent {
+  id            String    @id @default(cuid())
+  stripeEventId String    @unique @map("stripe_event_id")
+  type          String
+  processed     Boolean   @default(false)
+  receivedAt    DateTime  @default(now()) @map("received_at")
+  processedAt   DateTime? @map("processed_at")
+  rawPayload    Json      @map("raw_payload")
+  errorMessage  String?   @map("error_message")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@map("stripe_webhook_events")
 }
