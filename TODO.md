@@ -1,6 +1,6 @@
 # TODO / Progress Tracker
 
-Last updated: 2026-02-27
+Last updated: 2026-03-02
 
 ## How To Use
 
@@ -47,12 +47,12 @@ Last updated: 2026-02-27
 - [x] Implement Stripe catalog sync (`products`, `prices`)
 - [x] Implement checkout session endpoint (Stripe-hosted)
 - [x] Implement webhook endpoint with signature verification
-- [ ] Implement usage burn endpoint with idempotency
+- [x] Implement usage burn endpoint with idempotency
 - [ ] Add transaction history API + UI
 
 ## Current Focus
 
-- [ ] Implement usage burn endpoint with idempotency (In Progress)
+- [ ] Add transaction history API + UI (In Progress)
 
 ## Notes
 
@@ -61,3 +61,5 @@ Last updated: 2026-02-27
 - `PLAN_A` uses Stripe-native aggregation.
 - `PLAN_B` requires app-side peak aggregation before sending meter snapshots.
 - Webhook v1 handles 12 required Stripe events only (optional events deferred).
+- Burn usage API now supports idempotent `POST /api/usage/burn` for both plan strategies.
+- Burn API requires `priceId` to resolve the exact subscription in multi-sub organizations.
