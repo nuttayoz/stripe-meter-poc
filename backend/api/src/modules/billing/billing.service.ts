@@ -242,13 +242,15 @@ export class BillingService {
     const existingSubscriptions =
       await this.listAllSubscriptions(stripeCustomerId);
 
-    const hasActiveSubscription = existingSubscriptions.some((subscription) =>
-      this.isSubscriptionBlocking(subscription.status),
+    const hasActiveSubscriptionForPrice = existingSubscriptions.some(
+      (subscription) =>
+        this.isSubscriptionBlocking(subscription.status) &&
+        this.subscriptionContainsPrice(subscription, price.stripePriceId),
     );
 
-    if (hasActiveSubscription) {
+    if (hasActiveSubscriptionForPrice) {
       throw new ConflictException(
-        'Organization already has an active subscription',
+        'Organization already has an active subscription for this plan',
       );
     }
 
@@ -384,5 +386,22 @@ export class BillingService {
 
   private isSubscriptionBlocking(status: StripeSubscription['status']) {
     return status !== 'canceled' && status !== 'incomplete_expired';
+  }
+
+  private subscriptionContainsPrice(
+    subscription: StripeSubscription,
+    stripePriceId: string,
+  ) {
+    return (
+      subscription.items?.data.some((item) => {
+        const price = item.price;
+
+        if (typeof price === 'string') {
+          return price === stripePriceId;
+        }
+
+        return price?.id === stripePriceId;
+      }) ?? false
+    );
   }
 }

@@ -80,6 +80,33 @@ type CheckoutSessionResponse = {
   checkoutSessionId: string;
 };
 
+type BurnUnitsRequest = {
+  priceId: string;
+  units: number;
+  reason?: string;
+  idempotencyKey?: string;
+};
+
+export type BurnUnitsResponse = {
+  usageEventId: string;
+  idempotencyKey: string;
+  duplicate: boolean;
+  strategy: string;
+  stripePriceId: string;
+  stripeSubscriptionId: string;
+  status: string;
+  units: number;
+  reason: string | null;
+  stripeMeterEventId: string | null;
+  stripeMeterEventIdentifier: string | null;
+  peakUnits: number | null;
+  peakEventEmitted: boolean;
+  periodStart: string | null;
+  periodEnd: string | null;
+  errorMessage: string | null;
+  createdAt: string;
+};
+
 async function httpRequest<T>(
   path: string,
   options: RequestOptions = {},
@@ -168,6 +195,17 @@ export function createCheckoutSession(
   return httpRequest<CheckoutSessionResponse>("/api/billing/checkout-session", {
     method: "POST",
     credentials: "include",
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+    },
+    body: payload,
+  });
+}
+
+export function burnUnits(accessToken: string, payload: BurnUnitsRequest) {
+  return httpRequest<BurnUnitsResponse>('/api/usage/burn', {
+    method: 'POST',
+    credentials: 'include',
     headers: {
       authorization: `Bearer ${accessToken}`,
     },

@@ -87,6 +87,11 @@ export type StripeCustomer = {
 export type StripeSubscription = {
   id: string;
   status: string;
+  items?: {
+    data: Array<{
+      price?: string | { id?: string };
+    }>;
+  };
 };
 
 type StripeCheckoutSession = {

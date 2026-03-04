@@ -13,7 +13,9 @@ import {
   type BillingPlan,
 } from '@/lib/api';
 import {
+  clearDemoSubscription,
   getDemoSubscriptionActive,
+  setDemoSelectedPriceId,
   setDemoSubscriptionActive,
 } from '@/lib/subscription-storage';
 
@@ -68,6 +70,7 @@ export default function PlansPage() {
         throw new Error('Missing access token');
       }
 
+      setDemoSelectedPriceId(priceId);
       return createCheckoutSession(accessToken, { priceId });
     },
     onSuccess: (result) => {
@@ -76,7 +79,7 @@ export default function PlansPage() {
     onError: (error) => {
       if (error instanceof ApiError && error.status === 409) {
         setFeedbackMessage(
-          'This organization already has an active subscription. Use Burn Units.',
+          'This organization already has an active subscription for this plan. Try another plan or go to Burn Units.',
         );
         setDemoSubscriptionActive(true);
         setSubscriptionActive(true);
@@ -240,7 +243,7 @@ export default function PlansPage() {
                 className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium transition hover:bg-zinc-100"
                 type="button"
                 onClick={() => {
-                  setDemoSubscriptionActive(false);
+                  clearDemoSubscription();
                   setSubscriptionActive(false);
                   setFeedbackMessage(null);
                 }}
