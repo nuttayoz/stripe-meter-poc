@@ -65,3 +65,4 @@ Last updated: 2026-03-02
 - Burn API requires `priceId` to resolve the exact subscription in multi-sub organizations.
 - Burn page now executes real API mutation end-to-end (no local burn simulator writes).
 - Checkout now allows multi-plan subscriptions per org, while preventing duplicate active subscriptions for the same plan.
+- Burn page now loads `GET /api/billing/subscriptions/active` and allows burning only against active subscriptions.
