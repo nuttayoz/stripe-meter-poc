@@ -21,6 +21,12 @@ type StripeCollection<T extends { id: string }> = {
   has_more: boolean;
 };
 
+const ACTIVE_SUBSCRIPTION_STATUSES = [
+  'active',
+  'trialing',
+  'past_due',
+] as const;
+
 @Injectable()
 export class BillingService {
   constructor(
@@ -200,6 +206,72 @@ export class BillingService {
         billingStrategy: price.billingStrategy,
         metadata: price.metadata,
       })),
+    };
+  }
+
+  async getActiveSubscriptions(orgId: string) {
+    const subscriptions = await this.prisma.subscription.findMany({
+      where: {
+        organizationId: orgId,
+        status: {
+          in: [...ACTIVE_SUBSCRIPTION_STATUSES],
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+
+    const stripePriceIds = Array.from(
+      new Set(
+        subscriptions
+          .map((subscription) => subscription.stripePriceId)
+          .filter((stripePriceId): stripePriceId is string =>
+            Boolean(stripePriceId),
+          ),
+      ),
+    );
+
+    const prices =
+      stripePriceIds.length > 0
+        ? await this.prisma.billingPrice.findMany({
+            where: {
+              stripePriceId: {
+                in: stripePriceIds,
+              },
+            },
+            include: {
+              product: true,
+            },
+          })
+        : [];
+
+    const pricesById = new Map(
+      prices.map((price) => [price.stripePriceId, price] as const),
+    );
+
+    return {
+      subscriptions: subscriptions.map((subscription) => {
+        const price = subscription.stripePriceId
+          ? pricesById.get(subscription.stripePriceId)
+          : undefined;
+
+        return {
+          subscriptionId: subscription.stripeSubscriptionId,
+          priceId: subscription.stripePriceId,
+          status: subscription.status,
+          currentPeriodStart:
+            subscription.currentPeriodStart?.toISOString() ?? null,
+          currentPeriodEnd:
+            subscription.currentPeriodEnd?.toISOString() ?? null,
+          productName: price?.product.name ?? null,
+          productDescription: price?.product.description ?? null,
+          billingStrategy: price?.billingStrategy ?? 'UNKNOWN',
+          currency: price?.currency ?? null,
+          unitAmount: price?.unitAmount ?? null,
+          recurringInterval: price?.recurringInterval ?? null,
+        };
+      }),
     };
   }
 

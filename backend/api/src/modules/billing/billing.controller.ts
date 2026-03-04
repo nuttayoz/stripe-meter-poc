@@ -35,6 +35,11 @@ export class BillingController {
     return this.billingService.getPlans();
   }
 
+  @Get('subscriptions/active')
+  async getActiveSubscriptions(@Req() request: AuthenticatedRequest) {
+    return this.billingService.getActiveSubscriptions(request.authUser.orgId);
+  }
+
   @Post('checkout-session')
   async createCheckoutSession(
     @Req() request: AuthenticatedRequest,
