@@ -39,6 +39,18 @@ type StripeCheckoutSessionCreateParams = {
   metadata?: StripeMetadata;
 };
 
+type StripeMeterEventCreateParams = {
+  event_name: string;
+  payload: Record<string, string>;
+  identifier?: string;
+  timestamp?: number;
+};
+
+type StripeMeterEvent = {
+  id: string;
+  identifier: string | null;
+};
+
 export type StripeProduct = {
   id: string;
   name: string;
@@ -118,6 +130,11 @@ export type StripeClient = {
       create(
         params: StripeCheckoutSessionCreateParams,
       ): Promise<StripeCheckoutSession>;
+    };
+  };
+  billing: {
+    meterEvents: {
+      create(params: StripeMeterEventCreateParams): Promise<StripeMeterEvent>;
     };
   };
   webhooks: {
