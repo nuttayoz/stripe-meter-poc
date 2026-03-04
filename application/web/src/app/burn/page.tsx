@@ -7,10 +7,10 @@ import { useMemo, useState } from 'react';
 import { RouteGuard } from '@/components/route-guard';
 import { useLogout, useSession } from '@/hooks/use-session';
 import {
+  type ActiveSubscription,
   ApiError,
   burnUnits,
-  getBillingPlans,
-  type BillingPlan,
+  getActiveSubscriptions,
   type BurnUnitsResponse,
 } from '@/lib/api';
 import {
@@ -61,15 +61,15 @@ export default function BurnPage() {
   const [history, setHistory] = useState<BurnUnitsResponse[]>([]);
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
-  const plansQuery = useQuery({
-    queryKey: ['billing-plans', accessToken],
+  const activeSubscriptionsQuery = useQuery({
+    queryKey: ['active-subscriptions', accessToken],
     enabled: !!accessToken,
     queryFn: async () => {
       if (!accessToken) {
         throw new Error('Missing access token');
       }
 
-      return getBillingPlans(accessToken);
+      return getActiveSubscriptions(accessToken);
     },
   });
 
@@ -78,31 +78,43 @@ export default function BurnPage() {
     [history],
   );
 
-  const sortedPlans = useMemo(() => {
-    const plans = plansQuery.data?.plans ?? [];
-    return [...plans].sort((left, right) =>
-      left.productName.localeCompare(right.productName),
+  const selectableSubscriptions = useMemo(() => {
+    const subscriptions = activeSubscriptionsQuery.data?.subscriptions ?? [];
+    const withPriceId = subscriptions.filter(
+      (
+        subscription,
+      ): subscription is ActiveSubscription & { priceId: string } =>
+        typeof subscription.priceId === 'string' && subscription.priceId.length > 0,
     );
-  }, [plansQuery.data]);
+
+    return [...withPriceId].sort((left, right) =>
+      (left.productName ?? left.priceId).localeCompare(
+        right.productName ?? right.priceId,
+      ),
+    );
+  }, [activeSubscriptionsQuery.data]);
 
   const resolvedSelectedPriceId = useMemo(() => {
-    if (sortedPlans.length === 0) {
+    if (selectableSubscriptions.length === 0) {
       return null;
     }
 
     if (
       selectedPriceId &&
-      sortedPlans.some((plan) => plan.priceId === selectedPriceId)
+      selectableSubscriptions.some(
+        (subscription) => subscription.priceId === selectedPriceId,
+      )
     ) {
       return selectedPriceId;
     }
 
-    return sortedPlans[0]?.priceId ?? null;
-  }, [selectedPriceId, sortedPlans]);
+    return selectableSubscriptions[0]?.priceId ?? null;
+  }, [selectedPriceId, selectableSubscriptions]);
 
-  const selectedPlan: BillingPlan | null =
-    sortedPlans.find((plan) => plan.priceId === resolvedSelectedPriceId) ??
-    null;
+  const selectedSubscription: (ActiveSubscription & { priceId: string }) | null =
+    selectableSubscriptions.find(
+      (subscription) => subscription.priceId === resolvedSelectedPriceId,
+    ) ?? null;
 
   const burnMutation = useMutation({
     mutationFn: async (params: { units: number; reason: string }) => {
@@ -198,23 +210,27 @@ export default function BurnPage() {
               <p className="mt-1 text-sm text-zinc-600">
                 Choose which plan you want to burn credits against.
               </p>
-              {plansQuery.isLoading ? (
-                <p className="mt-3 text-sm text-zinc-500">Loading plans...</p>
+              {activeSubscriptionsQuery.isLoading ? (
+                <p className="mt-3 text-sm text-zinc-500">
+                  Loading active subscriptions...
+                </p>
               ) : null}
-              {plansQuery.isError ? (
+              {activeSubscriptionsQuery.isError ? (
                 <p className="mt-3 text-sm text-red-700">
-                  Failed to load plans. Please go back to plans page and sync catalog.
+                  Failed to load active subscriptions.
                 </p>
               ) : null}
-              {!plansQuery.isLoading && !plansQuery.isError && sortedPlans.length === 0 ? (
+              {!activeSubscriptionsQuery.isLoading &&
+              !activeSubscriptionsQuery.isError &&
+              selectableSubscriptions.length === 0 ? (
                 <p className="mt-3 text-sm text-zinc-600">
-                  No plans available in catalog yet.
+                  No active subscriptions available. Subscribe first from Plans.
                 </p>
               ) : null}
-              {sortedPlans.length > 0 ? (
+              {selectableSubscriptions.length > 0 ? (
                 <div className="mt-4 space-y-3">
                   <label className="block text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                    Plan
+                    Active Subscription
                   </label>
                   <select
                     className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
@@ -227,17 +243,27 @@ export default function BurnPage() {
                     }}
                     disabled={burnMutation.isPending}
                   >
-                    {sortedPlans.map((plan) => (
-                      <option key={plan.priceId} value={plan.priceId}>
-                        {plan.productName} ({toFriendlyStrategyLabel(plan.billingStrategy)})
+                    {selectableSubscriptions.map((subscription) => (
+                      <option
+                        key={subscription.subscriptionId}
+                        value={subscription.priceId}
+                      >
+                        {subscription.productName ?? subscription.priceId} (
+                        {toFriendlyStrategyLabel(subscription.billingStrategy)})
                       </option>
                     ))}
                   </select>
-                  {selectedPlan ? (
+                  {selectedSubscription ? (
                     <p className="text-xs text-zinc-500">
-                      Selected: <span className="font-medium">{selectedPlan.productName}</span>{' '}
-                      ({toFriendlyStrategyLabel(selectedPlan.billingStrategy)}) /{' '}
-                      <span className="font-mono">{selectedPlan.priceId}</span>
+                      Selected:{' '}
+                      <span className="font-medium">
+                        {selectedSubscription.productName ??
+                          selectedSubscription.priceId}
+                      </span>{' '}
+                      ({toFriendlyStrategyLabel(selectedSubscription.billingStrategy)}) /{' '}
+                      <span className="font-mono">
+                        {selectedSubscription.subscriptionId}
+                      </span>
                     </p>
                   ) : null}
                 </div>

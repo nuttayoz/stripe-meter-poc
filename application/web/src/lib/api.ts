@@ -71,6 +71,24 @@ type BillingPlansResponse = {
   plans: BillingPlan[];
 };
 
+export type ActiveSubscription = {
+  subscriptionId: string;
+  priceId: string | null;
+  status: string;
+  currentPeriodStart: string | null;
+  currentPeriodEnd: string | null;
+  productName: string | null;
+  productDescription: string | null;
+  billingStrategy: string;
+  currency: string | null;
+  unitAmount: number | null;
+  recurringInterval: string | null;
+};
+
+type ActiveSubscriptionsResponse = {
+  subscriptions: ActiveSubscription[];
+};
+
 type CheckoutSessionRequest = {
   priceId: string;
 };
@@ -188,6 +206,19 @@ export function getBillingPlans(accessToken: string) {
   });
 }
 
+export function getActiveSubscriptions(accessToken: string) {
+  return httpRequest<ActiveSubscriptionsResponse>(
+    "/api/billing/subscriptions/active",
+    {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+}
+
 export function createCheckoutSession(
   accessToken: string,
   payload: CheckoutSessionRequest,
@@ -203,9 +234,9 @@ export function createCheckoutSession(
 }
 
 export function burnUnits(accessToken: string, payload: BurnUnitsRequest) {
-  return httpRequest<BurnUnitsResponse>('/api/usage/burn', {
-    method: 'POST',
-    credentials: 'include',
+  return httpRequest<BurnUnitsResponse>("/api/usage/burn", {
+    method: "POST",
+    credentials: "include",
     headers: {
       authorization: `Bearer ${accessToken}`,
     },
