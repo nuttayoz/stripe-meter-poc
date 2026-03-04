@@ -63,3 +63,5 @@ Last updated: 2026-03-02
 - Webhook v1 handles 12 required Stripe events only (optional events deferred).
 - Burn usage API now supports idempotent `POST /api/usage/burn` for both plan strategies.
 - Burn API requires `priceId` to resolve the exact subscription in multi-sub organizations.
+- Burn page now executes real API mutation end-to-end (no local burn simulator writes).
+- Checkout now allows multi-plan subscriptions per org, while preventing duplicate active subscriptions for the same plan.
