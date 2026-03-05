@@ -156,6 +156,12 @@ export default function PlansPage() {
             >
               {logoutMutation.isPending ? 'Signing out...' : 'Sign out'}
             </button>
+            <Link
+              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium transition hover:bg-zinc-100"
+              href="/history"
+            >
+              History
+            </Link>
           </header>
 
           <section className="space-y-4">

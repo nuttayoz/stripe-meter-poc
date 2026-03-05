@@ -89,6 +89,42 @@ type ActiveSubscriptionsResponse = {
   subscriptions: ActiveSubscription[];
 };
 
+export type TransactionItem = {
+  id: string;
+  stripeEventId: string | null;
+  eventType: string;
+  type: string;
+  status: string;
+  amount: number | null;
+  currency: string | null;
+  stripeInvoiceId: string | null;
+  stripePaymentIntentId: string | null;
+  stripeChargeId: string | null;
+  stripeSubscriptionId: string | null;
+  rawPayload: unknown;
+  occurredAt: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type TransactionsResponse = {
+  transactions: TransactionItem[];
+  pageInfo: {
+    limit: number;
+    hasMore: boolean;
+    nextCursor: string | null;
+  };
+};
+
+type TransactionsQuery = {
+  cursor?: string;
+  limit?: number;
+  type?: string;
+  status?: string;
+  from?: string;
+  to?: string;
+};
+
 type CheckoutSessionRequest = {
   priceId: string;
 };
@@ -241,5 +277,49 @@ export function burnUnits(accessToken: string, payload: BurnUnitsRequest) {
       authorization: `Bearer ${accessToken}`,
     },
     body: payload,
+  });
+}
+
+export function getTransactions(
+  accessToken: string,
+  query: TransactionsQuery = {},
+) {
+  const searchParams = new URLSearchParams();
+
+  if (query.cursor) {
+    searchParams.set("cursor", query.cursor);
+  }
+
+  if (typeof query.limit === "number") {
+    searchParams.set("limit", String(query.limit));
+  }
+
+  if (query.type) {
+    searchParams.set("type", query.type);
+  }
+
+  if (query.status) {
+    searchParams.set("status", query.status);
+  }
+
+  if (query.from) {
+    searchParams.set("from", query.from);
+  }
+
+  if (query.to) {
+    searchParams.set("to", query.to);
+  }
+
+  const queryString = searchParams.toString();
+  const path = queryString
+    ? `/api/transactions?${queryString}`
+    : "/api/transactions";
+
+  return httpRequest<TransactionsResponse>(path, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      authorization: `Bearer ${accessToken}`,
+    },
   });
 }

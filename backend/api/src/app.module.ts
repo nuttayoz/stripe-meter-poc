@@ -10,6 +10,7 @@ import { StripeModule } from './modules/stripe/stripe.module';
 import { StripeClientModule } from './infrastructure/stripe/stripe-client.module';
 import { WebhookModule } from './modules/webhook/webhook.module';
 import { BurnModule } from './modules/burn/burn.module';
+import { TransactionsModule } from './modules/transactions/transactions.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { BurnModule } from './modules/burn/burn.module';
     StripeModule,
     BillingModule,
     BurnModule,
+    TransactionsModule,
     WebhookModule,
   ],
   controllers: [AppController],

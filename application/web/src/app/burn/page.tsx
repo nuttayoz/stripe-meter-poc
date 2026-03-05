@@ -194,6 +194,12 @@ export default function BurnPage() {
                 >
                   Back to Plans
                 </Link>
+                <Link
+                  className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium transition hover:bg-zinc-100"
+                  href="/history"
+                >
+                  History
+                </Link>
                 <button
                   className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium transition hover:bg-zinc-100 disabled:opacity-60"
                   type="button"
