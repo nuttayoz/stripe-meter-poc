@@ -1,6 +1,6 @@
 # TODO / Progress Tracker
 
-Last updated: 2026-03-02
+Last updated: 2026-03-05
 
 ## How To Use
 
@@ -48,11 +48,11 @@ Last updated: 2026-03-02
 - [x] Implement checkout session endpoint (Stripe-hosted)
 - [x] Implement webhook endpoint with signature verification
 - [x] Implement usage burn endpoint with idempotency
-- [ ] Add transaction history API + UI
+- [x] Add transaction history API + UI
 
 ## Current Focus
 
-- [ ] Add transaction history API + UI (In Progress)
+- [ ] Final verification and demo polish (In Progress)
 
 ## Notes
 
@@ -66,3 +66,4 @@ Last updated: 2026-03-02
 - Burn page now executes real API mutation end-to-end (no local burn simulator writes).
 - Checkout now allows multi-plan subscriptions per org, while preventing duplicate active subscriptions for the same plan.
 - Burn page now loads `GET /api/billing/subscriptions/active` and allows burning only against active subscriptions.
+- Transaction history is available via `GET /api/transactions` and `/history` page.
