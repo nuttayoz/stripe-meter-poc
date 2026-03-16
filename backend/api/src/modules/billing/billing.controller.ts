@@ -1,0 +1,54 @@
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { UserRole } from '@prisma/client';
+import { BillingService } from './billing.service';
+import { CreateCheckoutSessionDto } from './dto/create-checkout-session.dto';
+import {
+  AccessTokenGuard,
+  type AuthenticatedRequest,
+} from '../auth/guards/access-token.guard';
+
+@Controller('billing')
+@UseGuards(AccessTokenGuard)
+export class BillingController {
+  constructor(private readonly billingService: BillingService) {}
+
+  @Post('catalog/sync')
+  async syncCatalog(@Req() request: AuthenticatedRequest) {
+    const role = request.authUser.role;
+    if (role !== UserRole.OWNER && role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Only owner/admin can sync billing catalog');
+    }
+
+    return this.billingService.syncCatalog();
+  }
+
+  @Get('plans')
+  async getPlans() {
+    return this.billingService.getPlans();
+  }
+
+  @Get('subscriptions/active')
+  async getActiveSubscriptions(@Req() request: AuthenticatedRequest) {
+    return this.billingService.getActiveSubscriptions(request.authUser.orgId);
+  }
+
+  @Post('checkout-session')
+  async createCheckoutSession(
+    @Req() request: AuthenticatedRequest,
+    @Body() dto: CreateCheckoutSessionDto,
+  ) {
+    return this.billingService.createCheckoutSession({
+      orgId: request.authUser.orgId,
+      userId: request.authUser.sub,
+      priceId: dto.priceId,
+    });
+  }
+}

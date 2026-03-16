@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum BillingStrategy {
+  BASE_PLUS_OVERAGE
+  MAX_MEMBER_USAGE
+  UNKNOWN
+}
+
+model Organization {
+  id                 String                 @id @default(cuid())
+  name               String
+  stripeCustomerId   String?                @unique @map("stripe_customer_id")
+  users              User[]
+  subscriptions      Subscription[]
+  transactions       Transaction[]
+  usageEvents        UsageEvent[]
+  memberPeriodUsages MemberPeriodUsage[]
+  peakUsageSnapshots OrgPeakUsageSnapshot[]
+  createdAt          DateTime               @default(now()) @map("created_at")
+  updatedAt          DateTime               @updatedAt @map("updated_at")
+
+  @@map("organizations")
+}
+
+model BillingProduct {
+  id              String         @id @default(cuid())
+  stripeProductId String         @unique @map("stripe_product_id")
+  name            String
+  description     String?
+  active          Boolean        @default(true)
+  metadata        Json?
+  prices          BillingPrice[]
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  @@map("billing_products")
+}
+
+model BillingPrice {
+  id                     String          @id @default(cuid())
+  stripePriceId          String          @unique @map("stripe_price_id")
+  stripeProductId        String          @map("stripe_product_id")
+  product                BillingProduct  @relation(fields: [stripeProductId], references: [stripeProductId], onDelete: Restrict)
+  type                   String
+  currency               String
+  unitAmount             Int?            @map("unit_amount")
+  recurringInterval      String?         @map("recurring_interval")
+  recurringIntervalCount Int?            @map("recurring_interval_count")
+  usageType              String?         @map("usage_type")
+  meterId                String?         @map("meter_id")
+  taxBehavior            String?         @map("tax_behavior")
+  billingStrategy        BillingStrategy @default(UNKNOWN) @map("billing_strategy")
+  active                 Boolean         @default(true)
+  metadata               Json?
+  createdAt              DateTime        @default(now()) @map("created_at")
+  updatedAt              DateTime        @updatedAt @map("updated_at")
+
+  @@index([stripeProductId])
+  @@map("billing_prices")
+}
+
+model User {
+  id                 String                 @id @default(cuid())
+  organizationId     String                 @map("organization_id")
+  organization       Organization           @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  email              String                 @unique
+  passwordHash       String                 @map("password_hash")
+  role               UserRole               @default(MEMBER)
+  refreshTokens      RefreshToken[]
+  usageEvents        UsageEvent[]
+  memberPeriodUsages MemberPeriodUsage[]
+  peakUsageSnapshots OrgPeakUsageSnapshot[]
+  createdAt          DateTime               @default(now()) @map("created_at")
+  updatedAt          DateTime               @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Subscription {
+  id                   String       @id @default(cuid())
+  organizationId       String       @map("organization_id")
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  stripeSubscriptionId String       @unique @map("stripe_subscription_id")
+  stripePriceId        String?      @map("stripe_price_id")
+  status               String
+  currentPeriodStart   DateTime?    @map("current_period_start")
+  currentPeriodEnd     DateTime?    @map("current_period_end")
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@map("subscriptions")
+}
+
+model UsageEvent {
+  id                         String          @id @default(cuid())
+  organizationId             String          @map("organization_id")
+  organization               Organization    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  userId                     String          @map("user_id")
+  user                       User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  idempotencyKey             String          @unique @map("idempotency_key")
+  stripePriceId              String          @map("stripe_price_id")
+  stripeSubscriptionId       String          @map("stripe_subscription_id")
+  billingStrategy            BillingStrategy @map("billing_strategy")
+  units                      Int
+  reason                     String?
+  status                     String
+  stripeMeterEventId         String?         @map("stripe_meter_event_id")
+  stripeMeterEventIdentifier String?         @map("stripe_meter_event_identifier")
+  errorMessage               String?         @map("error_message")
+  rawPayload                 Json?           @map("raw_payload")
+  periodStart                DateTime?       @map("period_start")
+  periodEnd                  DateTime?       @map("period_end")
+  createdAt                  DateTime        @default(now()) @map("created_at")
+  updatedAt                  DateTime        @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@index([organizationId, stripePriceId])
+  @@index([userId])
+  @@index([stripeSubscriptionId])
+  @@index([status])
+  @@map("usage_events")
+}
+
+model MemberPeriodUsage {
+  id             String       @id @default(cuid())
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  stripePriceId  String       @map("stripe_price_id")
+  userId         String       @map("user_id")
+  user           User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  periodStart    DateTime     @map("period_start")
+  periodEnd      DateTime     @map("period_end")
+  totalUnits     Int          @default(0) @map("total_units")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@unique([organizationId, stripePriceId, userId, periodStart, periodEnd], name: "member_period_usage_unique")
+  @@index([organizationId, stripePriceId, periodStart, periodEnd])
+  @@map("member_period_usage")
+}
+
+model OrgPeakUsageSnapshot {
+  id                         String       @id @default(cuid())
+  organizationId             String       @map("organization_id")
+  organization               Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  stripePriceId              String       @map("stripe_price_id")
+  periodStart                DateTime     @map("period_start")
+  periodEnd                  DateTime     @map("period_end")
+  peakUnits                  Int          @map("peak_units")
+  sourceUserId               String?      @map("source_user_id")
+  sourceUser                 User?        @relation(fields: [sourceUserId], references: [id], onDelete: SetNull)
+  idempotencyKey             String       @unique @map("idempotency_key")
+  status                     String
+  stripeMeterEventId         String?      @map("stripe_meter_event_id")
+  stripeMeterEventIdentifier String?      @map("stripe_meter_event_identifier")
+  errorMessage               String?      @map("error_message")
+  rawPayload                 Json?        @map("raw_payload")
+  createdAt                  DateTime     @default(now()) @map("created_at")
+  updatedAt                  DateTime     @updatedAt @map("updated_at")
+
+  @@index([organizationId, stripePriceId, periodStart, periodEnd])
+  @@index([status])
+  @@map("org_peak_usage_snapshots")
+}
+
+model Transaction {
+  id                    String        @id @default(cuid())
+  organizationId        String?       @map("organization_id")
+  organization          Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  stripeEventId         String?       @unique @map("stripe_event_id")
+  eventType             String        @map("event_type")
+  type                  String
+  status                String
+  amount                Int?
+  currency              String?
+  stripeInvoiceId       String?       @map("stripe_invoice_id")
+  stripePaymentIntentId String?       @map("stripe_payment_intent_id")
+  stripeChargeId        String?       @map("stripe_charge_id")
+  stripeSubscriptionId  String?       @map("stripe_subscription_id")
+  rawPayload            Json?         @map("raw_payload")
+  occurredAt            DateTime      @map("occurred_at")
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@index([eventType])
+  @@map("transactions")
+}
+
+model StripeWebhookEvent {
+  id            String    @id @default(cuid())
+  stripeEventId String    @unique @map("stripe_event_id")
+  type          String
+  processed     Boolean   @default(false)
+  receivedAt    DateTime  @default(now()) @map("received_at")
+  processedAt   DateTime? @map("processed_at")
+  rawPayload    Json      @map("raw_payload")
+  errorMessage  String?   @map("error_message")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@map("stripe_webhook_events")
+}

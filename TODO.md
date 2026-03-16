@@ -1,6 +1,6 @@
 # TODO / Progress Tracker
 
-Last updated: 2026-02-26
+Last updated: 2026-03-05
 
 ## How To Use
 
@@ -39,20 +39,20 @@ Last updated: 2026-02-26
 
 ## Phase D: Next Implementation Targets
 
-- [ ] Build Auth module in NestJS (login, refresh, logout)
-- [ ] Add password hashing + refresh token persistence model
-- [ ] Build login page in Next.js
-- [ ] Add route guards (`/login` -> `/plans` -> `/burn`)
-- [ ] Add Stripe SDK module and secure env validation
-- [ ] Implement Stripe catalog sync (`products`, `prices`)
-- [ ] Implement checkout session endpoint (Stripe-hosted)
-- [ ] Implement webhook endpoint with signature verification
-- [ ] Implement usage burn endpoint with idempotency
-- [ ] Add transaction history API + UI
+- [x] Build Auth module in NestJS (login, refresh, logout)
+- [x] Add password hashing + refresh token persistence model
+- [x] Build login page in Next.js
+- [x] Add route guards (`/login` -> `/plans` -> `/burn`)
+- [x] Add Stripe SDK module and secure env validation
+- [x] Implement Stripe catalog sync (`products`, `prices`)
+- [x] Implement checkout session endpoint (Stripe-hosted)
+- [x] Implement webhook endpoint with signature verification
+- [x] Implement usage burn endpoint with idempotency
+- [x] Add transaction history API + UI
 
 ## Current Focus
 
-- [ ] Auth module + login flow (In Progress)
+- [ ] Final verification and demo polish (In Progress)
 
 ## Notes
 
@@ -60,3 +60,10 @@ Last updated: 2026-02-26
 - No Next.js API routes in v1 baseline.
 - `PLAN_A` uses Stripe-native aggregation.
 - `PLAN_B` requires app-side peak aggregation before sending meter snapshots.
+- Webhook v1 handles 12 required Stripe events only (optional events deferred).
+- Burn usage API now supports idempotent `POST /api/usage/burn` for both plan strategies.
+- Burn API requires `priceId` to resolve the exact subscription in multi-sub organizations.
+- Burn page now executes real API mutation end-to-end (no local burn simulator writes).
+- Checkout now allows multi-plan subscriptions per org, while preventing duplicate active subscriptions for the same plan.
+- Burn page now loads `GET /api/billing/subscriptions/active` and allows burning only against active subscriptions.
+- Transaction history is available via `GET /api/transactions` and `/history` page.

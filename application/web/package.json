@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "bun --env-file=../../.env --bun next dev -p 3000",
+    "build": "bun --env-file=../../.env --bun next build",
+    "start": "bun --env-file=../../.env --bun next start",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit"
